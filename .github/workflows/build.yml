@@ -536,7 +536,7 @@ jobs:
               if os.path.exists(p):
                   with open(p, "r") as f:
                       content = f.read()
-                  new_content = re.sub(r"(?m)^KSU_VERSION\s*:=.*", "KSU_VERSION := 40900", content)
+                  new_content = re.sub(r"(?m)^KSU_VERSION\s*:=.*", "KSU_VERSION := 40901", content)
                   with open(p, "w") as f:
                       f.write(new_content)
                   print(f"Synced KSU_VERSION to 40900 in {p}")
