@@ -1354,17 +1354,17 @@ jobs:
             cd ./common
             BID="ab$((RANDOM % 90000000 + 10000000))"
             GHASH=$(git rev-parse --verify HEAD | cut -c1-13)
-            # Unified kernel name format: -androidXX-KMI-gHASH-BID-4k
+            # Unified kernel name format
             case "${{ inputs.android_version }}-${{ inputs.kernel_version }}" in
-              "android14-6.1")  KMI_TAG="android14-11" ;;
+              "android14-6.1")  KMI_TAG="Darkstride-Kernel" ;;
               "android15-6.6")  KMI_TAG="android15-8" ;;
               "android16-6.12") KMI_TAG="android16-5" ;;
               *) KMI_TAG="${{ inputs.android_version }}" ;;
             esac
 
             if [ "${{ inputs.kernel_version }}" = "6.1" ]; then
-              # 6.1: Inject version name via setlocalversion (legacy format)
-              KMI_LOCAL="-${KMI_TAG}-g${GHASH}-${BID}-4k"
+              # 6.1: Permanent custom kernel name
+              KMI_LOCAL="-Darkstride-Kernel"
               sed -i "\$s|echo \"\$res\"|echo \"${KMI_LOCAL}\"|" ./scripts/setlocalversion 2>/dev/null || true
               sed -i "/^CONFIG_LOCALVERSION=/ s/=\"[^\"]*\"/=\"${KMI_LOCAL}\"/" ./arch/arm64/configs/gki_defconfig 2>/dev/null || true
             else
