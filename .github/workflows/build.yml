@@ -1391,10 +1391,16 @@ jobs:
           echo "Using build time: $DATESTR"
           echo "KBUILD_BUILD_TIMESTAMP=$DATESTR" >> "$GITHUB_ENV"
           echo "KBUILD_BUILD_VERSION=1" >> "$GITHUB_ENV"
+          echo "KBUILD_BUILD_USER=darkstride" >> "$GITHUB_ENV"
+          echo "KBUILD_BUILD_HOST=VΛRN" >> "$GITHUB_ENV"
 
-          # Process mkcompile_h timestamp patches
+          # Process mkcompile_h timestamp and banner info patches
           f="$KERNEL_ROOT/common/scripts/mkcompile_h"
           if [ -f "$f" ]; then
+            # Custom build banner: darkstride@VΛRN
+            sed -i 's/#define LINUX_COMPILE_BY.*/#define LINUX_COMPILE_BY "darkstride"/' "$f"
+            sed -i 's/#define LINUX_COMPILE_HOST.*/#define LINUX_COMPILE_HOST "VΛRN"/' "$f"
+
             if [[ "${{ inputs.kernel_version }}" == "5.10" || "${{ inputs.kernel_version }}" == "5.15" ]]; then
               echo "Applying 5.x classic timestamp patch: $f"
               perl -pi -e "s{UTS_VERSION=\"\\\$\(echo \\\$UTS_VERSION \\\$CONFIG_FLAGS \\\$TIMESTAMP \\| cut -b -\\\$UTS_LEN\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $DATESTR\"}" "$f"
