@@ -1259,10 +1259,6 @@ jobs:
           CONFIG_TMPFS_XATTR=y
           CONFIG_TMPFS_POSIX_ACL=y
 
-          # Network: BBR TCP Congestion Control (High speed Wi-Fi & Low Ping)
-          CONFIG_TCP_CONG_BBR=y
-          CONFIG_DEFAULT_BBR=y
-
           # Storage: Full F2FS Compression support (Faster app launch & space saving)
           CONFIG_F2FS_FS_LZ4=y
           CONFIG_F2FS_FS_LZ4HC=y
@@ -1334,7 +1330,7 @@ jobs:
             
             # Define KMI_TAG
             case "${{ inputs.android_version }}-${{ inputs.kernel_version }}" in
-              "android14-6.1")  KMI_TAG="" ;;
+              "android14-6.1")  KMI_TAG="Darkstride-Kernel" ;;
               "android15-6.6")  KMI_TAG="android15-8" ;;
               "android16-6.12") KMI_TAG="android16-5" ;;
               *) KMI_TAG="${{ inputs.android_version }}" ;;
