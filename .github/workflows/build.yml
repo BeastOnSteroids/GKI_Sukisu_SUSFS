@@ -85,7 +85,7 @@ on:
       droidspaces_ntsync:
         required: false
         type: boolean
-        default: false
+        default: true
       build_bypass:
         required: false
         type: boolean
@@ -135,7 +135,7 @@ jobs:
           echo "BBG Patch     : ${{ inputs.clean_build != true && inputs.use_bbg }}"
           echo "Re-Kernel     : ${{ inputs.clean_build != true && inputs.use_rekernel }}"
           echo "CVE-2026-43499: ${{ inputs.clean_build != true && inputs.cve_2026_43499_patch }}"
-          echo "NTSync        : ${{ inputs.clean_build != true && inputs.droidspaces != 'off' && inputs.droidspaces_ntsync }}"
+          echo "NTSync        : ${{ inputs.clean_build != true && inputs.droidspaces_ntsync }}"
           echo "Bypass Build  : ${{ inputs.build_bypass }}"
           echo "Stock Config  : ${{ inputs.clean_build && 'Disabled' || 'Auto-detect config/stock_defconfig' }}"
           echo "========================================"
@@ -228,6 +228,7 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
 
       # ==================== Restore ccache Cache ====================
+      # Restore ccache Cache
       - name: Restore ccache Cache
         uses: actions/cache@v5
         with:
@@ -264,6 +265,7 @@ jobs:
           openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 > $BOOT_SIGN_KEY_PATH
 
       # ==================== Configure Git ====================
+      # Configure Git
       - name: Configure Git
         run: |
           git config --global user.name "BuildBot"
@@ -621,6 +623,8 @@ jobs:
               sed -i '/^[[:space:]]*\/\*$/,/^[[:space:]]*u32 mask = mark->mask & IN_ALL_EVENTS;$/d' fs/notify/fdinfo.c
               perl -i -pe 's/\bmask,\s*mark->ignored_mask/inotify_mark_user_mask(mark)/g' fs/notify/fdinfo.c
               perl -i -pe 's/ignored_mask:%x/ignored_mask:0/g' fs/notify/fdinfo.c
+              sed -i 's|i_uid_into_mnt(i_user_ns(&fi->inode), &fi->inode).val|i_uid_into_mnt(\&init_user_ns, \&fi->inode).val|g' fs/susfs.c
+              sed -i 's|i_uid_into_mnt(i_user_ns(inode), inode).val|i_uid_into_mnt(\&init_user_ns, inode).val|g' fs/susfs.c
             fi
           fi
 
@@ -709,7 +713,7 @@ jobs:
             fi
             if [[ "$CURRENT_SUB" -ge 157 ]] && ! grep -qF '#include <trace/hooks/blk.h>' fs/namespace.c; then
               echo "Reverting Android 14 6.1 namespace.c adjustments"
-              sed -i '/^#include "internal.h"$/a #include <trace/hooks/blk.h>' fs/namespace.c
+              sed -i '/^#include "internal.h"/a #include <trace/hooks/blk.h>' fs/namespace.c
             fi
           fi
 
@@ -981,7 +985,7 @@ jobs:
           fi
 
       - name: Inject NTSync Kernel Configuration
-        if: inputs.clean_build != true && inputs.droidspaces != 'off' && inputs.droidspaces_ntsync
+        if: inputs.clean_build != true && inputs.droidspaces_ntsync
         working-directory: ${{ env.KERNEL_ROOT }}/common
         run: |
           set -e
@@ -1266,6 +1270,11 @@ jobs:
           CONFIG_F2FS_FS_LZO=y
           CONFIG_F2FS_FS_LZORLE=y
 
+          # Windows File System: Native NTFS3 Read/Write for OTG Flash Drives & SSDs
+          CONFIG_NTFS3_FS=y
+          CONFIG_NTFS3_LZX_XPRESS=y
+          CONFIG_NTFS3_FS_POSIX_ACL=y
+
           # Stability: Auto-reboot after 5s on panic instead of frozen screen
           CONFIG_PANIC_TIMEOUT=5
           EOF
@@ -1407,7 +1416,7 @@ jobs:
             else
               echo "Applying 6.x mkcompile_h patch: $f"
               if grep -q 'UTS_VERSION=' "$f"; then
-                perl -pi -e "s{UTS_VERSION=\"\\\$\\\(.*?\\\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $DATESTR\"}" "$f"
+                perl -pi -e "s{UTS_VERSION=\"\\\$\\\\(\\\\.*?\\\\)\"}{UTS_VERSION=\"#1 SMP PREEMPT $DATESTR\"}" "$f"
               else
                 perl -0777 -pi -e "s{cat <<EOF}{cat <<EOF\n#undef UTS_VERSION\n#define UTS_VERSION \"#1 SMP PREEMPT $DATESTR\" } unless /UTS_VERSION/" "$f"
               fi
