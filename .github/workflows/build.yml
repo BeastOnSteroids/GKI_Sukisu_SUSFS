@@ -1406,9 +1406,10 @@ jobs:
           # Process mkcompile_h timestamp and banner info patches
           f="$KERNEL_ROOT/common/scripts/mkcompile_h"
           if [ -f "$f" ]; then
-            # Custom build banner: darkstride@VΛRN
+            # Custom build banner: darkstride@VΛRN and Clang 20 spoof
             sed -i 's/#define LINUX_COMPILE_BY.*/#define LINUX_COMPILE_BY "darkstride"/' "$f"
             sed -i 's/#define LINUX_COMPILE_HOST.*/#define LINUX_COMPILE_HOST "VΛRN"/' "$f"
+            sed -i 's/#define LINUX_COMPILER.*/#define LINUX_COMPILER "Android (12145320, +pgo, +bolt, +lto, -mlgo, based on r547379) clang version 20.0.0, LLD 20.0.0"/' "$f"
 
             if [[ "${{ inputs.kernel_version }}" == "5.10" || "${{ inputs.kernel_version }}" == "5.15" ]]; then
               echo "Applying 5.x classic timestamp patch: $f"
